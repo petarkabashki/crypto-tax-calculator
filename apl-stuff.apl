@@ -169,11 +169,13 @@ RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1]
 ⍝ --- Calculate rolling bags 
 hbags ← 'bsize' 'bprice' 'btotal'
 10↑¨ rbags←RollingBag¨ {¯3↑[2]⍵}¨ dtr
+pnls← dtr{m←⍺[;6]=-1⋄m×(⍺[;8]-⍵[;2])×⍵[;1]}¨ rbags ⍝ Calculate PNLs
+
 ⎕←qtr,⊃⍪/(¯1↑¨rbags) ⍝ bags after all transactions 
 ⍝ --- Export transactions and rolling bags
 ( (⊃dtr[1]),(⊃rbags[1]) ) (hdtr, hbags) (⎕CSV⍠'IfExists' 'Replace') 'tran-bags.csv' 
 
-
+⍝ --- Calculate PNLs 
 
 ⍝ 10↑(,∘'00')¨(¯2↓¨d[;2]) ⍝ replace seconds with '00'
 ⍝ (d h) ← ⎕CSV './data-csv/BTC_USDT-1m.csv' '' (2 2 2 2 2 2) 1
