@@ -1,4 +1,4 @@
-freqtrade download-data --userdir freq-user-data --exchange binance -t 1m --timerange 20200901- -p BTC/GBP ETH/GBP ETH/USDT GBP/USDT BNB/USDT
+freqtrade download-data --userdir freq-user-data --exchange binance -t 1m --timerange 20200901- -p BTC/GBP ETH/GBP ETH/USDT GBP/USDT BNB/USDT BTC/USDT
 
 freqtrade download-data --userdir freq-user-data --exchange coinbase -t 1m --timerange 20200901- -p BTC/GBP ETH/GBP ETH/USDT GBP/USDT BNB/USDT
 

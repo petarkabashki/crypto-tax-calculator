@@ -73,12 +73,12 @@ dd hh (⎕CSV⍠'IfExists' 'Replace') 'all-trades.csv'
 ⍝ d←dd
 (≢d[;4])≠(≢∪d[;4]) ⍝ Check all order id's are unique
 
-------------------------------------------
----  load klines and missing data stats
+⍝ ------------------------------------------
+⍝ ---  load klines and missing data stats
 
 (d h) ← ⎕CSV './data-csv/BTC_USDT-1m.csv' '' (2 2 2 2 2 2) 1
 x ← d[;1] ,[1.5]  4÷⍨ +/ d[;2 3 4 5] ⍝ calculate ohlc/4
--- Filling in missing values
+⍝ -- Filling in missing values
 t←x[;1] ⋄ td←(1↓t)-(¯1↓t)⋄10↑td ⍝ Timestamp diffs
 {(⍺÷(1000×60×60)) (≢⍵)}⌸td ⍝ Time diffs in hours
 ix←⍸ td ≠ 60000 ⋄ix ⍝ indexes of missing data
@@ -86,7 +86,7 @@ av←2÷⍨d[ix;2] + d[ix+1;2]⋄10↑av ⍝ average of left and right sides
 m←¯1+60000÷⍨d[ix+1;1]-d[ix;1]⋄xx←x⍪ ↑↑,/(d[ix;1]+60000×⍳¨m),¨¨av⋄sx←xx[⍋xx[;1];]⋄10↑sx ⍝ Insert missing values and sort
 {(⍺÷(1000×60×60)) (≢⍵)}⌸ ⊢ {(1↓⍵[;1])-(¯1↓⍵[;1])} sx ⍝ Check now all dime diffs are the same
 
---------------------------------------------
+⍝ --------------------------------------------
 ⍝ -- Function for filling missing data
 
 ]dinput 
@@ -124,21 +124,50 @@ d[;8]← {⊂'USDT'} @{⍵ ∊ 'DAI' 'USDC' 'BUSD'} ⊢ d[;8] ⍝ replace DAI US
 ⍝ --- split by quote
 (qtd dtd)←↓⍉d[;8]{⍺, ⊂⍵}⌸d ⍝ extract transaction groups and rows by quote 
 ⍝ --- quote currencies to be converted
-qconv←'ETH' 'BTC'
+qconv←'ETH' 'BTC' 'GBP'
 dconv←dtd[qtd ⍳ qconv] ⍝ 
 ⍝ ---historical prices for qconv/dconv
 dcohi←dhi[qhi ⍳ qconv]
 dconQP←dconv {⍵[⍵[;1] ⍳ ⍺[;1];2]}¨ dcohi ⍝ extract historical prices
 dconPU← dconQP {⍵[;10] × ⍺}¨ dconv ⍝ Prices of base in USDT
-dconFo←dconPU {(⍵[;9]×⍺),⍨⍺,⍨⍵[;6 9],⍨⍵[;1 7],⊂'F'}¨ dconv ⍝ Forward-converted to USDT
-dconBa← dconQP {(⍺×⍵[;11]),⍨⍺,⍨⍵[;,11],⍨(side_inv ⍵[;,6]),⍨⍵[;1 8],⊂'B'}¨ dconv ⍝ Forward-converted to USDT
+dconFo←dconPU {(⍵[;9]×⍺),⍨⍺,⍨⍵[;6 9],⍨⍵[;1 2 3 7],⊂'F'}¨ dconv ⍝ Forward-converted to USDT
+dconBa← dconQP {(⍺×⍵[;11]),⍨⍺,⍨⍵[;,11],⍨(side_inv ⍵[;,6]),⍨⍵[;1 2 3 8],⊂'B'}¨ dconv ⍝ Forward-converted to USDT
+⍝ --- transactions in USDT
+dusdt← {⍵[;6 9 10 11],⍨⍵[;1 2 3 7],⊂'N'}¨ dtd[qtd ⍳ ⊂'USDT']
+⍝ --- ALL TRANSACTIONS - converted + inverted + normal(usdt)
+10↑tr←{⍵[⍋⍵[;1];]}⊃⍪/dconFo,dconBa,dusdt
+10↑ tr[;6]←¯1+2×tr[;6]≡¨⊂'BUY' ⍝ Convert BUY/SELL to +1/-1
+(⍳≢h),[0.5]h
 
-        3↑¨ dconPU {⍺,⍨⍵[;,8 11],⍨⍵[;,1],side_inv ⍵[;,6]}¨ dconv ⍝ Forward-converted to USDT
- (⍳≢h),[0.5]h
-⍝ -- quote prices
-qpr←¨qt{bq←⊃qk[q⍳⊂⍺]⋄{⍵}@(bq[;1] ⍳ ⍵)⊢bq[;2]}¨ {⍵[;1]}¨(dd[;1]∊qt) / dd[;2]
 
-{(q t)←↓⍉⍵⋄⎕←q}(dd[;1] ∊ 'ETH' 'BTC') ⌿ dd
+⍝ -------------------------------------------
+⍝ --- Calculations and Reports
+
+(qtr dtr)←↓⍉tr[;4]{⍺, ⊂⍵}⌸tr ⍝ extract transaction groups and rows by asset 
+
+qtr,[0.5]≢¨dtr ⍝ Number of transactions per asset
+qtr,[0.5]{∨/(⍳≢⍵[;1])≠⍋⍵[;1]}¨ dtr ⍝ check for unsorted asset transacttion groups
+
+5↑xtr←⊃dtr[4] ⍝ extract a transaction for XRP
+{⍺ ⍵} / ⌽ 'a',  ⍳3 ⍝ example running calculation
+
+
+{ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}/⌽↓(4⍴0)⍪ 3↑ ¯4↑[2] xtr
+
+{ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}↓⊖{(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]} (4⍴0)⍪ 6↓ 8↑ ¯4↑[2] xtr
+⍝ --- calculates the final bag after transactions
+HorMat ← {(¯2↑1,⍴⍵)⍴⍵}
+⍝ --- function to apply side +1/-1 to size and total, leaving only columns (+-)size,price,(+-)total
+ApplySide ← {(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]}
+⍝ --- Calculates rolling holding bag for asset
+      ]display ⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ ApplySide (4⍴0)⍪ 8↑ ¯4↑[2] xtr
+
+⍝ --- Function that Calculates Rolling Bag for asset
+RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ ApplySide (4⍴0)⍪ ⍵}
+
+⍝ --- Calculate rolling bags 
+10↑¨ rbags←RollingBag¨ {¯4↑[2]⍵}¨ dtr
+
 
 ⍝ 10↑(,∘'00')¨(¯2↓¨d[;2]) ⍝ replace seconds with '00'
 ⍝ (d h) ← ⎕CSV './data-csv/BTC_USDT-1m.csv' '' (2 2 2 2 2 2) 1
