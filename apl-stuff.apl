@@ -59,7 +59,7 @@ dbn←(' ' ⎕R 'T' ⊢ df[;8]),(⊂'binance'),df[;3 2 5],b,q,sz,↑ap,¨tot,¨0
 --Concat coinbase + binance
 dd←dcb⍪dbn
 
--- Export csv file with all trades
+⍝ -- Export csv file with all trades
 dd hh (⎕CSV⍠'IfExists' 'Replace') 'all-trades.csv' 
 
 ⍝ --Load consolidated trades from csv
@@ -135,38 +135,44 @@ dconBa← dconQP {(⍺×⍵[;11]),⍨⍺,⍨⍵[;,11],⍨(side_inv ⍵[;,6]),⍨
 ⍝ --- transactions in USDT
 dusdt← {⍵[;6 9 10 11],⍨⍵[;1 2 3 7],⊂'N'}¨ dtd[qtd ⍳ ⊂'USDT']
 ⍝ --- ALL TRANSACTIONS - converted + inverted + normal(usdt)
-10↑tr←{⍵[⍋⍵[;1];]}⊃⍪/dconFo,dconBa,dusdt
-10↑ tr[;6]←¯1+2×tr[;6]≡¨⊂'BUY' ⍝ Convert BUY/SELL to +1/-1
+htr←'ts' 'time' 'xchg' 'asset' 'type' 'side' 'size' 'price' 'total'
+10↑tr← {w←⍵⋄w[;7 9]×←w[;6 6]⋄w} {w←⍵⋄w[;6]←¯1+2×⍵[;6]≡¨⊂'BUY'⋄w} {⍵[⍋⍵[;1];]}⊃⍪/dconFo,dconBa,dusdt
+⍝ 10↑ tr[;6]←¯1+2×tr[;6]≡¨⊂'BUY' ⍝ Convert BUY/SELL to +1/-1
 (⍳≢h),[0.5]h
 
+⍝ {w←⍵⋄w[;7 9]×←w[;6 6]⋄w}
 
 ⍝ -------------------------------------------
 ⍝ --- Calculations and Reports
 
 (qtr dtr)←↓⍉tr[;4]{⍺, ⊂⍵}⌸tr ⍝ extract transaction groups and rows by asset 
-
 qtr,[0.5]≢¨dtr ⍝ Number of transactions per asset
 qtr,[0.5]{∨/(⍳≢⍵[;1])≠⍋⍵[;1]}¨ dtr ⍝ check for unsorted asset transacttion groups
 
 5↑xtr←⊃dtr[4] ⍝ extract a transaction for XRP
-{⍺ ⍵} / ⌽ 'a',  ⍳3 ⍝ example running calculation
+⍝ {⍺ ⍵} / ⌽ 'a',  ⍳3 ⍝ example running calculation
 
 
-{ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}/⌽↓(4⍴0)⍪ 3↑ ¯4↑[2] xtr
+⍝ {ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}/⌽↓(4⍴0)⍪ 3↑ ¯4↑[2] xtr
 
-{ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}↓⊖{(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]} (4⍴0)⍪ 6↓ 8↑ ¯4↑[2] xtr
+⍝ {ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}↓⊖{(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]} (4⍴0)⍪ 6↓ 8↑ ¯4↑[2] xtr
 ⍝ --- calculates the final bag after transactions
 HorMat ← {(¯2↑1,⍴⍵)⍴⍵}
 ⍝ --- function to apply side +1/-1 to size and total, leaving only columns (+-)size,price,(+-)total
 ApplySide ← {(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]}
 ⍝ --- Calculates rolling holding bag for asset
-      ]display ⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ ApplySide (4⍴0)⍪ 8↑ ¯4↑[2] xtr
+]display ⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ {⍵[;2 3 4]} 0⍪ 8↑ ¯4↑[2] xtr
 
 ⍝ --- Function that Calculates Rolling Bag for asset
-RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ ApplySide (4⍴0)⍪ ⍵}
+RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ 0⍪ ⍵}
 
 ⍝ --- Calculate rolling bags 
-10↑¨ rbags←RollingBag¨ {¯4↑[2]⍵}¨ dtr
+hbags ← 'bsize' 'bprice' 'btotal'
+10↑¨ rbags←RollingBag¨ {¯3↑[2]⍵}¨ dtr
+⎕←qtr,⊃⍪/(¯1↑¨rbags) ⍝ bags after all transactions 
+⍝ --- Export transactions and rolling bags
+( (⊃dtr[1]),(⊃rbags[1]) ) (hdtr, hbags) (⎕CSV⍠'IfExists' 'Replace') 'tran-bags.csv' 
+
 
 
 ⍝ 10↑(,∘'00')¨(¯2↓¨d[;2]) ⍝ replace seconds with '00'
