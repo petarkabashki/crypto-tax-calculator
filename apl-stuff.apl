@@ -5,58 +5,71 @@ c ← ((⊂'exchange'),(¯1+≢c) ⍴ ⊂ 'coinbase-pro'),c
 
 3↑d⍪⍨⍳2⌷⍴d
 
---------------------------------------------
-COINBASE-PRO
+⍝ --------------------------------------------
+⍝ COINBASE-PRO
 (d h) ← ⎕CSV '/media/grenada/Data/Accounting/pk-crypto-tax-calculator/trading-data/coinbase-pro/fills-2023-12-22.csv' '' (1 1 1 1 1 2 1 2 2 2 1) 1 
-### Check fee calculations
-(|d[;10]) ≠(d[;6]×d[;8])+d[;9]×¯1+2×(⊂'BUY')≡¨d[;4]
+⍝ --- Check fee calculations
+⍝ (|d[;10]) ≠(d[;6]×d[;8])+d[;9]×¯1+2×(⊂'BUY')≡¨d[;4]
 hh ← 'time' 'exch' 'pair' 'id' 'side' 'base' 'quote' 'size' 'price' 'total' 'fee'
 dcb← (19↑¨d[;5]),(⊂'coinbase-pro'),d[;3 2], d[;4 7 11 6],(|d[;10] ÷ d[;6]) ,↑|d[;10],¨d[;9]
 
---------------------------------------------
-BINANCE
+⍝ --------------------------------------------
+⍝ PHEMEX
 
-c← ⎕CSV '/media/grenada/Data/Accounting/pk-crypto-tax-calculator/trading-data/binance-2023-12-all/2020-2021.csv'
-h←1↑c
-d←1↓c
-∪d[;12]
+⍝ --------------------------------------------
+⍝ BITGET
 
----Load all binance files at once
-fd←(⊂'/media/grenada/Data/Accounting/pk-crypto-tax-calculator/trading-data/binance-2023-12-all/'),¨⊢'2020-2021' '2021-2022' '2022-2023' ,¨⊂'.csv'
-d←(1↓⎕CSV fd[1])⍪(1↓⎕CSV fd[2])⍪(1↓⎕CSV fd[3])
-h←(1↑⎕CSV fd[3])
+(d h) ← ⎕CSV 'trading-data/bitget/Spot Order History-2023.csv' '' (1 1 1 1 2 2 2 1 1 1) 1 
+d[;8]←⍎¨(⊂'0.0')@{(''∘≡)¨⍵}⊢ d[;8] ⍝ Replace empty values with '0' and convert to numbers
 
--- remove canceled
-df←(~d[;12]∊ ⊢'CANCELED' 'EXPIRED') /[1] d
----check status of selected
-∪12 ⌷[2] df 
+⍝ d←⍕d ⍝ convert numerics
 
---- Extract base and quote
+
+⍝ --------------------------------------------
+⍝ BINANCE
+
+⍝ ---Load all binance files at once
+fd←(⊂'trading-data/binance-2023-12-all/OrderHistory/'),¨⊢'2020' '2021' '2022' '2023' ,¨⊂'.csv'
+d← ⊃⍪/{⊃1↑⎕CSV ⍵ '' ⍬ 1}¨ fd ⍝ load data from csvs
+d←(~d[;12]∊ ⊢'CANCELED' 'EXPIRED') /[1] d ⍝ -- remove canceled
+
+⍝ d← ⊃⍪/{⊃1↑⎕CSV ⍵ '' (1 1 1 2 1 1 1) 1}¨ fd
+⍝ d←(1↓⎕CSV fd[1])⍪(1↓⎕CSV fd[2])⍪(1↓⎕CSV fd[3])
+⍝ h←(1↑⎕CSV fd[3])
+
+
+⍝ ---check status of selected
+⍝ ∪12 ⌷[2] df 
+
+⍝ --- Extract base and quote
 qb← 'BUSD' 'GBP' 'USD' 'USDT' 'BTC' 'ETH' 'DAI'
-pp←df[;3]
-+/1= ⌈/¨ ,/ p ∘.{⍸⍵⍷⍺} qb 
-ps←⌈/¨ ,/ p ∘.{⍸⍵⍷⍺} qb
-bq ← ↑↑p ,.{⊂((⍵-1)↑⍺) ((⍵-1)↓⍺)} ps 
-b←bq[;1]
-q←bq[;2]
+10↑ q←{qb[⍵]}⍸¨↓d[;3]∘.{⍵≡(-≢⍵)↑⍺} qb ⍝ Extract quote currencies
+10↑ b←q{(-≢⍺)↓⍵}¨d[;3] ⍝ Extract base currencies
 
---- remove chars from size and total
-## a←df[;7]
-##sz←⍎¨((df[;9]{⊃⍸⍵⍷⍺}¨b)-1)↑¨df[;9]
-sz←⍎¨'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\1' ⊢ df[;9]
-b←'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\3' ⊢ df[;9]
-tot←⍎¨'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\1' ⊢ df[;11]
-q←'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\3' ⊢ df[;11]
 
-###tot←⍎¨((df[;11]{⊃⍸⍵⍷⍺}¨q)-1)↑¨df[;11]
---- check gibberish average price
-###ap←⍎¨(~∨/¨(⊂'0E-') ⍷¨ df[;10]) /df[;10]
-ap←⍎¨df[;10]
---- Check if size * average price == total
+⍝ +/1= ⌈/¨ ,/ d[;3] ∘.{⍸⍵⍷⍺} qb 
+⍝ ps←⌈/¨ ,/ d[;3] ∘.{⍸⍵⍷⍺} qb
+⍝ bq ← ↑↑p ,.{⊂((⍵-1)↑⍺) ((⍵-1)↓⍺)} ps 
+⍝ b←bq[;1]
+⍝ q←bq[;2]
+
+⍝ --- remove chars from size and total
+⍝ a←d[;7]
+⍝ sz←⍎¨((df[;9]{⊃⍸⍵⍷⍺}¨b)-1)↑¨d[;9]
+10↑sz←⍎¨'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\1' ⊢ d[;9]
+10↑b←'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\3' ⊢ d[;9]
+10↑tot←⍎¨'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\1' ⊢ d[;11]
+10↑q←'^(\d+(\.\d+)?)([A-Z]+)$' ⎕S '\3' ⊢ d[;11]
+
+⍝ 10↑tot←⍎¨((d[;11]{⊃⍸⍵⍷⍺}¨q)-1)↑¨d[;11]
+⍝ --- check gibberish average price
+⍝ ap←⍎¨(~∨/¨(⊂'0E-') ⍷¨ d[;10]) /d[;10]
+ap←⍎¨ { 'E-' ⎕R 'E¯' ⊢⍵}¨ d[;10] ⍝ massage price and convert to number
+⍝ --- Check if size * average price == total
 +/0.01<tot-¨sz×¨ap
-dbn←(' ' ⎕R 'T' ⊢ df[;8]),(⊂'binance'),df[;3 2 5],b,q,sz,↑ap,¨tot,¨0
+dbn←(' ' ⎕R 'T' ⊢ d[;8]),(⊂'binance'),d[;3 2 5],b,q,sz,↑ap,¨tot,¨0
 
---Concat coinbase + binance
+⍝ --Concat coinbase + binance
 dd←dcb⍪dbn
 
 ⍝ -- Export csv file with all trades
