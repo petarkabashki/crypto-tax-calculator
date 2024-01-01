@@ -1,0 +1,61 @@
+"You can use this transaction report to inform your likely tax obligations. For US customers, Sells, Converts, Rewards Income, Learning Rewards, and Donations are taxable events. For final tax obligations, please consult your tax advisor."
+
+
+
+Transactions
+User,peter.kabashky@gmail.com,5f5f4bcf3e1500167e56d443
+
+Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+2020-09-23T01:04:13Z,Send,BTC,0.00012303,GBP,8262.76,"","","",Sent 0.00012303 BTC to 3M3vDhcPrEf1CevYXxWGT9kDMSEzaaieJG
+2020-09-23T01:08:03Z,Send,BTC,0.00012303,GBP,8267.72,"","","",Sent 0.00012303 BTC to 3M3vDhcPrEf1CevYXxWGT9kDMSEzaaieJG
+2020-09-23T01:11:00Z,Send,BTC,0.00102304,GBP,8267.72,"","","",Sent 0.00102304 BTC to 351hAHRJnhRubVvitfqauJhUAd2Asi6Lox
+2020-10-17T16:02:26Z,Send,BTC,0.00011778,GBP,8783.49,"","","",Sent 0.00011778 BTC to bc1qf6hpr8t3u82fm06uq5zdl4f4qe42ar3uv6zlfg
+2020-10-17T16:04:24Z,Send,BTC,0.00011778,GBP,8783.49,"","","",Sent 0.00011778 BTC to bc1qf6hpr8t3u82fm06uq5zdl4f4qe42ar3uv6zlfg
+2020-10-17T16:07:27Z,Send,BTC,0.00011778,GBP,8784.85,"","","",Sent 0.00011778 BTC to 33D2Jv3a76gn9c4pR5HMJADmp5tWdZvDm5
+2020-10-17T16:10:06Z,Send,BTC,0.00164666,GBP,8784.85,"","","",Sent 0.00164666 BTC to bc1qm5guw30k6a9q3vp6f20za6jrnsnxa0ffqzv093
+2020-10-17T16:17:13Z,Send,BTC,0.006,GBP,8772.56,"","","",Sent 0.0060 BTC to bc1qmy9ppfqla89w94zhvg8hldayzawe5mpj678sll
+2020-10-19T16:42:24Z,Send,BTC,0.00012423,GBP,9060.49,"","","",Sent 0.00012423 BTC to bc1qt3m5f6vdjakve970cayw0eq3gsxf8aexe0aqdy
+2020-10-19T16:49:25Z,Send,BTC,0.19492903,GBP,9060.34,"","","",Sent 0.19492903 BTC to bc1qjvwtf0r9yqne6frpz90ry4kz8pqak6rrfy96cz
+2020-10-21T14:40:43Z,Send,BTC,0.44696449,GBP,9706.88,"","","",Sent 0.44696449 BTC to bc1qf0zkspnhlt3tpqw3depd54eqj4aqytztasu0ep
+2020-10-21T15:07:59Z,Send,BTC,0.58,GBP,9675.07,"","","",Sent 0.5800 BTC to bc1qag9tzdp7rg4w5wdzem3vc0w3gqvrsaenm3eux8
+2020-10-22T23:54:58Z,Send,BTC,1.0,GBP,9944.02,"","","",Sent 1.0000 BTC to bc1qs8gmzjke3rxfdl4g9m55kdyw4m0803pqzym6qp
+2020-11-07T21:35:44Z,Send,BTC,0.85,GBP,11278.93,"","","",Sent 0.8500 BTC to bc1q6lrntgzef9ujzpwf5al9cnwchg3m6ntr70rsrx
+2020-11-20T09:49:48Z,Send,BTC,0.80451522,GBP,13641.03,"","","",Sent 0.80451522 BTC to bc1qckrc39l0jf7ugmvvfzhld75v40luua424c88dg
+2020-11-20T09:55:11Z,Send,BTC,0.72,GBP,13641.03,"","","",Sent 0.7200 BTC to bc1qwk3waw98h5937frc2dn4y3h9cnc05lxmf6unfx
+2020-11-20T10:08:32Z,Send,BTC,0.71,GBP,13734.20,"","","",Sent 0.7100 BTC to bc1qszvqvj586pk78qgvem40flm587xfeysk0ekn8m
+2020-11-28T01:33:06Z,Receive,BTC,0.0001,GBP,12916.90,"","","",Received 0.0001 BTC from an external account
+2020-11-29T01:21:25Z,Send,BTC,1.98002517,GBP,13273.21,"","","",Sent 1.98002517 BTC to bc1q5em49rc4glsf9nmmp9pls6nnjj69r9ryxsptkv
+2020-12-03T23:44:44Z,Send,BTC,1.38297826,GBP,14465.44,"","","",Sent 1.38297826 BTC to bc1q3m46aupwzm5zel2rtu6x7jf56kq6ygaylyvzcq
+2020-12-06T00:37:49Z,Send,BTC,2.13043237,GBP,14310.99,"","","",Sent 2.13043237 BTC to bc1qgt2l5mhgxlzze0wm8yzl8f595eum3vqlsf0w0a
+2020-12-10T02:31:50Z,Send,BTC,0.71261884,GBP,13788.35,"","","",Sent 0.71261884 BTC to bc1qwhm5sl3cwemltdqvy35l9hq946wlwj3ju9krtt
+2020-12-11T23:45:07Z,Receive,BTC,0.4,GBP,13644.01,"","","",Received 0.4000 BTC from an external account
+2020-12-13T12:33:07Z,Receive,BTC,2.0,GBP,14612.97,"","","",Received 2.0000 BTC from an external account
+2020-12-15T03:02:17Z,Send,BTC,1.83002068,GBP,14615.31,"","","",Sent 1.83002068 BTC to bc1qxaf5rys3dmgk8ed3nw6zn24kakgyz56d3hxnxx
+2020-12-18T17:56:45Z,Send,BTC,1.47685033,GBP,16881.30,"","","",Sent 1.47685033 BTC to bc1qwyu0ahvqcr82ymtt8pka00vr7phwlxxkdmy4qc
+2020-12-21T02:53:56Z,Send,BTC,0.00101872,GBP,17780.20,"","","",Sent 0.00101872 BTC to 1MTNvSRt9Mw4Q6bomyvtEnKRnsFFBK7tBh
+2020-12-24T15:50:16Z,Send,BTC,0.00103551,GBP,17142.12,"","","",Sent 0.00103551 BTC to 33rN5sjUD1kzqWnJQphC6CTU7FSanBy9wN
+2020-12-25T23:22:54Z,Send,BTC,0.94370455,GBP,18091.21,"","","",Sent 0.94370455 BTC to 1MTNvSRt9Mw4Q6bomyvtEnKRnsFFBK7tBh
+2021-01-04T19:15:29Z,Send,BTC,1.08552075,GBP,23084.58,"","","",Sent 1.08552075 BTC to bc1q3tapnqe2ggpfh822ex47mje5jv9la099xfzp0t
+2020-10-17T16:11:59Z,Send,ETH,0.03487155,GBP,284.86,"","","",Sent 0.03487155 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-10-17T16:20:43Z,Send,ETH,0.13994228,GBP,284.10,"","","",Sent 0.13994228 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-10-19T16:52:44Z,Send,ETH,0.00557797,GBP,294.48,"","","",Sent 0.00557797 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-10-19T18:42:18Z,Send,ETH,0.03475527,GBP,293.82,"","","",Sent 0.03475527 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-10-19T18:45:58Z,Send,ETH,1.20966676,GBP,293.82,"","","",Sent 1.20966676 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-11-07T21:46:52Z,Send,ETH,1.15999999,GBP,329.52,"","","",Sent 1.15999999 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-11-25T00:14:31Z,Send,ETH,12.25000001,GBP,453.47,"","","",Sent 12.25000001 ETH to 0xB3D65716F4Af921a1d2C1000E74476B498C8e6cA
+2020-12-25T02:39:15Z,Receive,ETH,14.8,GBP,449.74,"","","",Received 14.8000 ETH from an external account
+2020-11-23T23:56:23Z,Send,XRP,100.0,GBP,0.460000,"","","",Sent 100.0000 XRP to raK9CVfaXykPNcPg6c65H913J2jpBUEUY3
+2020-11-24T00:04:03Z,Send,XRP,9900.0,GBP,0.460000,"","","","Sent 9,900.0000 XRP to raK9CVfaXykPNcPg6c65H913J2jpBUEUY3"
+2020-11-24T13:51:40Z,Receive,XRP,10.0,GBP,0.510000,"","","",Received 10.0000 XRP from an external account
+2020-11-25T00:22:20Z,Send,XRP,10000.0,GBP,0.520000,"","","","Sent 10,000.0000 XRP to raK9CVfaXykPNcPg6c65H913J2jpBUEUY3"
+2020-11-25T23:37:05Z,Receive,XRP,9900.0,GBP,0.470000,"","","","Received 9,900.0000 XRP from an external account"
+2020-11-26T01:34:40Z,Receive,XRP,10000.0,GBP,0.480000,"","","","Received 10,000.0000 XRP from an external account"
+2020-11-27T19:37:44Z,Send,XRP,9991.0,GBP,0.400000,"","","","Sent 9,991.0000 XRP to raK9CVfaXykPNcPg6c65H913J2jpBUEUY3"
+2020-11-27T20:31:53Z,Receive,XRP,2.42483,GBP,0.410000,"","","",Received 2.42483 XRP from Aneta Takucheva
+2020-12-11T22:55:22Z,Receive,XRP,10000.0,GBP,0.440000,"","","","Received 10,000.0000 XRP from an external account"
+2020-12-12T19:26:06Z,Send,XRP,23606.0,GBP,0.380000,"","","","Sent 23,606.0000 XRP to raK9CVfaXykPNcPg6c65H913J2jpBUEUY3"
+2020-12-12T02:11:10Z,Learning Reward,FIL,0.06619668,GBP,22.81,1.51,1.51,0.00,Received 0.06619668 FIL from Coinbase as a learning reward
+2020-12-12T02:14:02Z,Learning Reward,FIL,0.06620325,GBP,22.81,1.51,1.51,0.00,Received 0.06620325 FIL from Coinbase as a learning reward
+2020-12-12T02:18:01Z,Learning Reward,FIL,0.06616186,GBP,22.86,1.51,1.51,0.00,Received 0.06616186 FIL from Coinbase as a learning reward
+2022-01-21T11:20:05Z,Receive,USDT,88562.321516,GBP,0.730000,"","","","Received 88,562.321516 USDT from an external account"
+2021-09-23T23:08:14Z,Receive,DOT,9.83989907,GBP,24.03,"","","",Received 9.83989907 DOT from an external account

@@ -7,11 +7,20 @@ qb← 'USDC' 'BUSD' 'GBP' 'USDT' 'BTC' 'ETH' 'DAI'
 (⍳≢h),[0.5]h ⍝ header
 +/0.0001<(d[;9])-¨×/d[;6 8] ⍝ Check if price × size = total
 
-hh ← 'time' 'exch' 'pair' 'id' 'side' 'base' 'quote' 'size' 'price' 'total' 'fee'
-⍴3↑dcb←d[;5],(⊂'coinbase-pro'),(('-'⎕R '')¨d[;3]),d[;2], d[;4 7 10 6 8],×/d[;6 8]
+hh ← 'time' 'exch' 'pair' 'id' 'side' 'base' 'quote' 'size' 'price' 'total'
+⍴3↑dcb←(19↑¨ d[;5]),(⊂'coinbase-pro'),(('-'⎕R '')¨d[;3]),d[;2], d[;4 7 10 6 8],×/d[;6 8]
 
 ⍝ --------------------------------------------
 ⍝ PHEMEX
+(d h)  ← ⎕CSV 'trading-data/phemex/SPOT_TRADE_2023.csv' '' ⍬ 1
+(⍳≢h),[0.5]h ⍝ header
+d[;3]←('SELL' 'BUY')[1+(≡∘'Buy')¨d[;3]] ⍝ Massage Buy/Sell
+∪ q←{qb[⍵]}⍸¨↓d[;2]∘.{⍵≡(-≢⍵)↑⍺} qb ⍝ Extract quote
+∪ b←q{(-3+≢⍺)↓⍵}¨d[;2] ⍝ Extract base
+szt←↑(d[;3]≡¨⊂'SELL') {⍺⌽⍵}¨ ↓d[;4 6] ⍝ Get size and total as columns
+sz←⍎¨ b{(-≢⍺)↓⍵}¨szt[;1] ⍝ extract size
+tot←⍎¨ q{(-≢⍺)↓⍵}¨szt[;2] ⍝ extract total
+3↑dphm←d[;1],(⊂'phemex'),(b,¨q),d[;12 3],b,q,sz,(tot÷sz),⍉(1,≢tot)⍴tot 
 
 ⍝ --------------------------------------------
 ⍝ BITGET
@@ -29,20 +38,10 @@ dbtg←d[;1],(⊂'phemex'),p,'-',d[;4],b,q,d[;7 8],×/d[;7 8]
 
 ⍝ --------------------------------------------
 ⍝ BINANCE
-
-⍝ fd←(⊂'trading-data/binance/OrderHistory/'),¨ ,('2021') ,¨⊂'.csv'
-
 ⍝ ---Load all binance files at once
 fd←(⊂'trading-data/binance/OrderHistory/'),¨ ('2020-with-time' '2021' '2022' '2023') ,¨⊂'.csv'
 d← ⊃⍪/{⊃1↑⎕CSV ⍵ '' ⍬ 1}¨ fd ⍝ load data from csvs
 d←(~d[;12]∊ ⊢'CANCELED' 'EXPIRED') /[1] d ⍝ -- remove canceled
-
-⍝ d← ⊃⍪/{⊃1↑⎕CSV ⍵ '' (1 1 1 2 1 1 1) 1}¨ fd
-⍝ d←(1↓⎕CSV fd[1])⍪(1↓⎕CSV fd[2])⍪(1↓⎕CSV fd[3])
-⍝ h←(1↑⎕CSV fd[3])
-
-⍝ ---check status of selected
-⍝ ∪12 ⌷[2] df 
 
 ⍝ --- Extract base and quote
 10↑ q←{qb[⍵]}⍸¨↓d[;3]∘.{⍵≡(-≢⍵)↑⍺} qb ⍝ Extract quote currencies
@@ -51,33 +50,29 @@ d←(~d[;12]∊ ⊢'CANCELED' 'EXPIRED') /[1] d ⍝ -- remove canceled
 d[;9]←⍎¨ d[;9] {(-≢⍵)↓⍺}¨ b ⍝ extract base
 d[;11]←⍎¨d[;11] {(-≢⍵)↓⍺}¨ q ⍝ extract quote
 
-⍝ 10↑tot←⍎¨((d[;11]{⊃⍸⍵⍷⍺}¨q)-1)↑¨d[;11]
-⍝ --- check gibberish average price
-⍝ ap←⍎¨(~∨/¨(⊂'0E-') ⍷¨ d[;10]) /d[;10]
 10↑d[;10]←⍎¨ { 'E-' ⎕R 'E¯' ⊢⍵}¨ d[;10] ⍝ massage price and convert to number
 ⍝ --- Check if size * average price == total
 +/0.001<|d[;11]-×/d[;9 10] ⍝ check if price × size = total
 3↑ dbn←d[;1],(⊂'binance'),d[;3 2 5],b,q,d[;9 10 11]
 
-⍝ ****************************************
 ⍝ ----------------------------------------
 ⍝ --Concat orders from all exchanges
-
-dd←dcb⍪dbn⍪dbtg
-
+dd←dcb⍪dbn⍪dbtg⍪dphm
 ⍝ -- Export csv file with all trades
 dd hh (⎕CSV⍠'IfExists' 'Replace') 'all-trades.csv' 
+⍝ ----------------------------------------
+
 
 ⍝ --Load consolidated trades from csv
 
-⍝ (d h) ← ⎕CSV 'all-trades.csv' '' ⍬ 1
+(d h) ← ⎕CSV 'all-trades.csv' '' ⍬ 1
 
 ⍝ ### ]display (,⍤⍕)¨(5↑d[;1])  {a←⊃⍺⋄w←⍵⋄{⍵[2]↑⍵[1]↓a}¨w }⍤ 0 1 ⊢ (↓6 2⍴0 4 5 2 8 2 11 2 14 2 17 2 21 2) 
 
 ⍝ -- Add number of days since 1899-12-21 as last column
 ⍝ dd←d, ¯1 1 ⎕DT ⊢ ⍎¨('-|T|:' ⎕R ',') ⊢ d[;1] ⍝ convert ISO datetime to days since 1899-12-31
 ⍝ d←dd
-(≢d[;4])≠(≢∪d[;4]) ⍝ Check all order id's are unique
+⍝ (≢d[;4])≠(≢∪d[;4]) ⍝ Check all order id's are unique
 
 ⍝ ------------------------------------------
 ⍝ ---  load klines and missing data stats
@@ -120,20 +115,27 @@ qhi←'BTC' 'ETH' 'GBP'
 dhi←⌷fill_missing¨{⍵[;1] ,[1.5]  4÷⍨ +/ ⍵[;2 3 4 5]}¨{cload⊢'./data-csv/',⍵,'_USDT-1m.csv' }¨qhi
 
 ⍝ -------------------------------------------
+⍝ -- function for loading candle csvs
+cload ← { (d h) ← ⎕CSV ⍵ '' (2 2 2 2 2 2) 1 ⋄ d}
+side_inv←{('SELL' 'BUY')[1+⍵ ∊⊂'SELL']}⍝ function to invert BUY/SELL to +1/-1
+⍝ ---  load BTC/USDT and ETH/USDT and fill missing values
+
+⍝ -------------------------------------------
 ⍝ --- Load trade data
 
-(d h)←(2 1){¯1↓[⍺]⍵}¨ ⎕CSV 'all-trades.csv' '' (1 1 1 1 1 1 1 2 2 2 2) 1 ⍝ load trades and drop last column
+(d h)← ⎕CSV 'all-trades.csv' '' (1 1 1 1 1 1 1 2 2 2) 1 ⍝ load trades 
 h←(⊂'ts'), h ⍝ add ts as first column
 d←(¯1 12⎕DT 0,⍨¨5↑¨ ⍎¨('-|T|:' ⎕R ',') ⊢ d[;1]) , d ⍝ add unix timestamp as first column
 d[;8]← {⊂'USDT'} @{⍵ ∊ 'DAI' 'USDC' 'BUSD'} ⊢ d[;8] ⍝ replace DAI USDC BUSD with USDT
+d←d[⍋d[;1];] ⍝ Sort by timestamp
 
 ⍝ --- split by quote
 (qtd dtd)←↓⍉d[;8]{⍺, ⊂⍵}⌸d ⍝ extract transaction groups and rows by quote 
 ⍝ --- quote currencies to be converted
-qconv←'ETH' 'BTC' 'GBP'
-dconv←dtd[qtd ⍳ qconv] ⍝ 
+qconv←'ETH' 'BTC' 'GBP' 
+dconv←dtd[qtd ⍳ qconv] ⍝ transactions to be converted, in order of qconv
 ⍝ ---historical prices for qconv/dconv
-dcohi←dhi[qhi ⍳ qconv]
+dcohi←dhi[qhi ⍳ qconv] ⍝ historical quote prices in order of qconv
 dconQP←dconv {⍵[⍵[;1] ⍳ ⍺[;1];2]}¨ dcohi ⍝ extract historical prices
 dconPU← dconQP {⍵[;10] × ⍺}¨ dconv ⍝ Prices of base in USDT
 dconFo←dconPU {(⍵[;9]×⍺),⍨⍺,⍨⍵[;6 9],⍨⍵[;1 2 3 7],⊂'F'}¨ dconv ⍝ Forward-converted to USDT
