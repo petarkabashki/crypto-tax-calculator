@@ -176,7 +176,7 @@ ApplySide ← {(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]}
 RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ 0⍪ ⍵}
 
 ⍝ 10↑¨ 4⌷ ⊢{1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ 0⍪ ⍵}¨  {¯3↑[2]⍵}¨ dtr
-10↑¨ 4⌷ rbags←{1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄pnl←⍺{⍺[1]>0:0⋄⍺[1]×⍵[2]-⍺[2]}w[1;]⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt,pnl)⍪w} /↓⊖ ⊢0⍪ ⍵}¨ 0,⍨¨ {¯3↑[2]⍵}¨ dtr
+10↑¨ 4⌷ rbags←{⍵,+⍀¯1↑[2]⍵}¨ {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄pnl←⍺{⍺[1]>0:0⋄⍺[1]×⍵[2]-⍺[2]}w[1;]⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt,pnl)⍪w} /↓⊖ ⊢0⍪ ⍵}¨ 0,⍨¨ {¯3↑[2]⍵}¨ dtr
 
 ⍝ ]dinput 
 ⍝ RollingBag ← {
@@ -208,7 +208,7 @@ lbags ('asset' 'size' 'avgPrice' 'totalUSDT') (⎕CSV⍠'IfExists' 'Replace') 'l
 ⍝ fxrbg←{(⊃rbags[qtr⍳(⊂⍵)]) hbags (⎕CSV⍠'IfExists' 'Replace') ('reports/rolling-bags/',⍵,'-rolling-bag.csv')}
 ⍝ fxtrbg←{⊃dtr{⍺,⍵}¨rbags {⍺,⍵}¨ pnls) (htr,hbags,⊂'pnl') (⎕CSV⍠'IfExists' 'Replace') ('reports/tran-bags/',⍵,'-tran-bag.csv'}
 ⍝ Concatenate transactions, bags, pnl
-trbnls←dtr{⍺,⍵}¨rbags 
+⍴¨trbnls←{⍵,+⍀¯1↑[2]⍵}¨ dtr{⍺,⍵}¨ ⊢ {¯1↓[2]⍵}¨ rbags 
 hpnltr←htr,hbags,⊂'cumpnl'
 ⍝ fxtr←{(⊃trbnls[qtr⍳(⊂⍵)]) hpnltr) (⎕CSV⍠'IfExists' 'Replace') ('reports/transactions/',⍵,'.csv')}
 
@@ -237,6 +237,29 @@ pntrs hpnltr csvr 'pnl-transactions.csv'
 ⍝ x←{(⊃⍺)(≢⍵)}⌸ d[;8]⋄x[(⍒x[;2]);] ⍝ Number of transactions per quote currency
 ⍝ x←{(⊃⍺)(≢⍵)}⌸ d[;7]⋄x[(⍒x[;2]);] ⍝ Number of transactions per base currency
 ⍝ {⍺ (≢⍵)}⌸⊢d[;8] ⍝ Number of trades per quote
+
+⍝ ------------------------------------------
+⍝ --- Bed & Breakfast rule
+
+10↑x← {⍵[;1],¯4↑[2]⍵} ⊃dtr[1]
+]display 10↑ 30↓ (3↑¨12 ¯1⎕DT 1↑[2] x),(⌊12 1⎕DT 1↑[2] x),x
+(⌊12 1∘⎕DT) ,/ ⊢ 10↑ 40↓ x[;,1]
+]display x←10×⍳10⋄↑{⍵,⊂⍸ (x≥⍵)∧x≤⍵+30}¨x
+
+]display {x←⍵⋄{⍵, ⊂⍸ (x≥⍵)∧x≤⍵+30}¨⍵} ⊢ ⌊12 1⎕DT 10↑ ,1↑[2] ⊃dtr[1]
+⍝ -
+]display tr←20↑ 30↓⊃dtr[1]
+]display d←⌊12 1⎕DT tr[;1] 
+]display  ix30←{⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
+]display  ⍴¨{⍵[;7]}¨{(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
+]display   ¯4↑[2]¨ {(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
+]display ≢¨{⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
+]display ¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
+
+⍝ --- collect a list of next 30 days buys for every sell
+lbuys←¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1 ⍝ buys in nextt 30 days for every sell  
+
+⍝ -------------------------------------------
 
 
 ⍝ ---Generate additional transactions for quotes in BTC ETH GBP
