@@ -62,33 +62,13 @@ dd←dcb⍪dbn⍪dbtg⍪dphm
 dd hh (⎕CSV⍠'IfExists' 'Replace') 'all-trades.csv' 
 ⍝ ----------------------------------------
 
+⍝ ----------------------------------------------------------------------------
+⍝ -----------   Tax calculations   -------------------------------------------
+⍝ ----------------------------------------------------------------------------
 
-⍝ --Load consolidated trades from csv
-
-(d h) ← ⎕CSV 'all-trades.csv' '' ⍬ 1
-
-⍝ ### ]display (,⍤⍕)¨(5↑d[;1])  {a←⊃⍺⋄w←⍵⋄{⍵[2]↑⍵[1]↓a}¨w }⍤ 0 1 ⊢ (↓6 2⍴0 4 5 2 8 2 11 2 14 2 17 2 21 2) 
-
-⍝ -- Add number of days since 1899-12-21 as last column
-⍝ dd←d, ¯1 1 ⎕DT ⊢ ⍎¨('-|T|:' ⎕R ',') ⊢ d[;1] ⍝ convert ISO datetime to days since 1899-12-31
-⍝ d←dd
-⍝ (≢d[;4])≠(≢∪d[;4]) ⍝ Check all order id's are unique
-
-⍝ ------------------------------------------
-⍝ ---  load klines and missing data stats
-
-⍝ (d h) ← ⎕CSV './data-csv/BTC_USDT-1m.csv' '' (2 2 2 2 2 2) 1
-⍝ x ← d[;1] ,[1.5]  4÷⍨ +/ d[;2 3 4 5] ⍝ calculate ohlc/4
-⍝ ⍝ -- Filling in missing values
-⍝ t←x[;1] ⋄ td←(1↓t)-(¯1↓t)⋄10↑td ⍝ Timestamp diffs
-⍝ {(⍺÷(1000×60×60)) (≢⍵)}⌸td ⍝ Time diffs in hours
-⍝ ix←⍸ td ≠ 60000 ⋄ix ⍝ indexes of missing data
-⍝ av←2÷⍨d[ix;2] + d[ix+1;2]⋄10↑av ⍝ average of left and right sides
-⍝ m←¯1+60000÷⍨d[ix+1;1]-d[ix;1]⋄xx←x⍪ ↑↑,/(d[ix;1]+60000×⍳¨m),¨¨av⋄sx←xx[⍋xx[;1];]⋄10↑sx ⍝ Insert missing values and sort
-⍝ {(⍺÷(1000×60×60)) (≢⍵)}⌸ ⊢ {(1↓⍵[;1])-(¯1↓⍵[;1])} sx ⍝ Check now all dime diffs are the same
-
-⍝ --------------------------------------------
-⍝ -- Function for filling missing data
+⍝ -------------------------------------------
+⍝ --- Common functions
+⍝ -------------------------------------------
 
 ]dinput 
 fill_missing ← {  ⍝ Fill missing rows with average of both sides
@@ -99,40 +79,33 @@ fill_missing ← {  ⍝ Fill missing rows with average of both sides
     xx[⍋xx[;1];] ⍝ Insert missing values and sort
 }
 
-⍝ -------------------------------------------
-⍝ -- function for loading candle csvs
-cload ← { (d h) ← ⎕CSV ⍵ '' (2 2 2 2 2 2) 1 ⋄ d}
+kload ← { (d h) ← ⎕CSV ⍵ '' (2 2 2 2 2 2) 1 ⋄ d}
 side_inv←{('SELL' 'BUY')[1+⍵ ∊⊂'SELL']}⍝ function to invert BUY/SELL to +1/-1
-⍝ ---  load BTC/USDT and ETH/USDT and fill missing values
-
-⍝ 10 ↑ fbtc← fill_missing {⍵[;1] ,[1.5]  4÷⍨ +/ ⍵[;2 3 4 5]} cload './data-csv/BTC_USDT-1m.csv'
-⍝ 10 ↑ feth← fill_missing {⍵[;1] ,[1.5]  4÷⍨ +/ ⍵[;2 3 4 5]} cload './data-csv/ETH_USDT-1m.csv'
-⍝ 10 ↑ fgbp← fill_missing {⍵[;1] ,[1.5]  4÷⍨ +/ ⍵[;2 3 4 5]} cload './data-csv/GBP_USDT-1m.csv'
+⍝ --Load consolidated trades from csv
 
 ⍝ -------------------------------------------
-⍝ --- Load quote klines
+⍝ ---  load BTC/USDT and ETH/USDT and fill missing values
+⍝ 
 qhi←'BTC' 'ETH' 'GBP'
-dhi←⌷fill_missing¨{⍵[;1] ,[1.5]  4÷⍨ +/ ⍵[;2 3 4 5]}¨{cload⊢'./data-csv/',⍵,'_USDT-1m.csv' }¨qhi
+dhi←⌷fill_missing¨{⍵[;1] ,[1.5]  4÷⍨ +/ ⍵[;2 3 4 5]}¨{kload⊢'./data-csv/',⍵,'_USDT-1m.csv' }¨qhi
+
 
 ⍝ -------------------------------------------
-⍝ -- function for loading candle csvs
-cload ← { (d h) ← ⎕CSV ⍵ '' (2 2 2 2 2 2) 1 ⋄ d}
-side_inv←{('SELL' 'BUY')[1+⍵ ∊⊂'SELL']}⍝ function to invert BUY/SELL to +1/-1
-⍝ ---  load BTC/USDT and ETH/USDT and fill missing values
-
-⍝ -------------------------------------------
-⍝ --- Load trade data
-
+⍝ --- Load trade data and split by asset
+⍝ 
 (d h)← ⎕CSV 'all-trades.csv' '' (1 1 1 1 1 1 1 2 2 2) 1 ⍝ load trades 
 h←(⊂'ts'), h ⍝ add ts as first column
 d←(¯1 12⎕DT 0,⍨¨5↑¨ ⍎¨('-|T|:' ⎕R ',') ⊢ d[;1]) , d ⍝ add unix timestamp as first column
+⍝ replace USD equivalents by USDT
 d[;8]← {⊂'USDT'} @{⍵ ∊ 'DAI' 'USDC' 'BUSD'} ⊢ d[;8] ⍝ replace DAI USDC BUSD with USDT
 d←d[⍋d[;1];] ⍝ Sort by timestamp
-
 ⍝ --- split by quote
 (qtd dtd)←↓⍉d[;8]{⍺, ⊂⍵}⌸d ⍝ extract transaction groups and rows by quote 
-⍝ --- quote currencies to be converted
-qconv←'ETH' 'BTC' 'GBP' 
+
+⍝ -------------------------------------------
+⍝ --- Convert to USDT
+⍝ 
+qconv←'ETH' 'BTC' 'GBP' ⍝ quote currencies to be converted
 dconv←dtd[qtd ⍳ qconv] ⍝ transactions to be converted, in order of qconv
 ⍝ ---historical prices for qconv/dconv
 dcohi←dhi[qhi ⍳ qconv] ⍝ historical quote prices in order of qconv
@@ -144,33 +117,30 @@ dconBa← dconQP {(⍺×⍵[;11]),⍨⍺,⍨⍵[;,11],⍨(⍵[;5], side_inv ⍵[
 dusdt← {⍵[;5 6 9 10 11],⍨⍵[;1 2 3 7],⊂'N'}¨ dtd[qtd ⍳ ⊂'USDT']
 ⍝ --- ALL TRANSACTIONS - converted + inverted + normal(usdt)
 htr←'ts' 'time' 'xchg' 'asset' 'type' 'id' 'side' 'size' 'price' 'total'
-10↑tr← {w←⍵⋄w[;8 10]×←w[;7 7]⋄w} {w←⍵⋄w[;7]←¯1+2×⍵[;7]≡¨⊂'BUY'⋄w} {⍵[⍋⍵[;1];]}⊃⍪/dconFo,dconBa,dusdt
+⍝ --- tr contains transactions in USDT value(converted)
+tr← {w←⍵⋄w[;8 10]×←w[;7 7]⋄w} {w←⍵⋄w[;7]←¯1+2×⍵[;7]≡¨⊂'BUY'⋄w} {⍵[⍋⍵[;1];]}⊃⍪/dconFo,dconBa,dusdt
 ⍝ 10↑ tr[;6]←¯1+2×tr[;6]≡¨⊂'BUY' ⍝ Convert BUY/SELL to +1/-1
-(⍳≢h),[0.5]h
 
 ⍝ {w←⍵⋄w[;7 9]×←w[;6 6]⋄w}
 
 ⍝ -------------------------------------------
-⍝ --- Calculations and Reports
-
+⍝ --- split transactions by asset
+⍝ 
 (qtr dtr)←↓⍉tr[;4]{⍺, ⊂⍵}⌸tr ⍝ extract transaction groups and rows by asset 
 dtr←{⍵[⍋⍵[;1],-⍵[;,7];]}¨ dtr ⍝ Sort by timestampm then buys first
 qtr,[0.5]≢¨dtr ⍝ Number of transactions per asset
 qtr,[0.5]{∨/(⍳≢⍵[;1])≠⍋⍵[;1]}¨ dtr ⍝ check for unsorted asset transacttion groups
+⍝ 
+⍝ -------------------------------------------
 
-⍝ 5↑xtr←⊃dtr[4] ⍝ extract a transaction for XRP
-⍝ {⍺ ⍵} / ⌽ 'a',  ⍳3 ⍝ example running calculation
 
-
-⍝ {ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}/⌽↓(4⍴0)⍪ 3↑ ¯4↑[2] xtr
-
-⍝ {ns←⍺[1]+⍵[1]⋄nt←⍺[3]+⍵[3]⋄0,ns,(nt÷ns),nt}↓⊖{(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]} (4⍴0)⍪ 6↓ 8↑ ¯4↑[2] xtr
+⍝ -------------------------------------------
+⍝ --- Rolling bags
+⍝ 
 ⍝ --- calculates the final bag after transactions
 HorMat ← {(¯2↑1,⍴⍵)⍴⍵}
 ⍝ --- function to apply side +1/-1 to size and total, leaving only columns (+-)size,price,(+-)total
 ApplySide ← {(⍵[;1]×⍵[;2]),⍵[;,3],⍵[;1]×⍵[;4]}
-⍝ --- Calculates rolling holding bag for asset
-⍝ ]display ⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ {⍵[;2 3 4]} 0⍪ 8↑ ¯4↑[2] xtr
 
 ⍝ --- Function that Calculates Rolling Bag for asset
 RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ 0⍪ ⍵}
@@ -178,19 +148,7 @@ RollingBag ← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1]
 ⍝ 10↑¨ 4⌷ ⊢{1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt)⍪w} /↓⊖ 0⍪ ⍵}¨  {¯3↑[2]⍵}¨ dtr
 10↑¨ 4⌷ rbags←{⍵,+⍀¯1↑[2]⍵}¨ {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄pnl←⍺{⍺[1]>0:0⋄⍺[1]×⍵[2]-⍺[2]}w[1;]⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt,pnl)⍪w} /↓⊖ ⊢0⍪ ⍵}¨ 0,⍨¨ {¯3↑[2]⍵}¨ dtr
 
-⍝ ]dinput 
-⍝ RollingBag ← {
-⍝     1↓⊖⊃{
-⍝             w←HorMat ⍵
-⍝             p←{
-⍝                 ⍵[1]>0:⍵[2]⋄⍵[3]
-⍝             } ⍺[1],⍺[2],w[1;2]
-⍝             ns←⍺[1]+w[1;1]
-⍝             nt←w[1;3]+⍺[1]×p
-⍝             pnl←⍵[1]>0:0⋄(⍺[2]-w[1;2])×⍺[1]
-⍝             (ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt,pnl)⍪w
-⍝     } /↓⊖ 0⍪ ⍵
-⍝ }
+
 
 ⍝ --- Calculate rolling bags 
 hbags ← 'bsize' 'bprice' 'btotal' 'pnl'
@@ -203,10 +161,7 @@ lbags←{⍵[⍋⍵[;1];]} qtr,{⍵[;1],(⍵[;3]÷⍵[;1]),⍵[;,3]}⊃⍪/(¯1�
 lbags ('asset' 'size' 'avgPrice' 'totalUSDT') (⎕CSV⍠'IfExists' 'Replace') 'latest-bags.csv' 
 ⍝ --- Export transactions and rolling bags
 ( (⊃dtr[1]),(⊃rbags[1]) ) (htr, hbags) (⎕CSV⍠'IfExists' 'Replace') 'tran-bags.csv' 
-⍝ --- Function to export transactions for asset like: fxtr 'BNB'
-⍝ fxtr←{(⊃dtr[qtr⍳(⊂⍵)]) htr (⎕CSV⍠'IfExists' 'Replace') ('reports/transactions/',⍵,'-transactions.csv')}
-⍝ fxrbg←{(⊃rbags[qtr⍳(⊂⍵)]) hbags (⎕CSV⍠'IfExists' 'Replace') ('reports/rolling-bags/',⍵,'-rolling-bag.csv')}
-⍝ fxtrbg←{⊃dtr{⍺,⍵}¨rbags {⍺,⍵}¨ pnls) (htr,hbags,⊂'pnl') (⎕CSV⍠'IfExists' 'Replace') ('reports/tran-bags/',⍵,'-tran-bag.csv'}
+
 ⍝ Concatenate transactions, bags, pnl
 ⍴¨trbnls←{⍵,+⍀¯1↑[2]⍵}¨ dtr{⍺,⍵}¨ ⊢ {¯1↓[2]⍵}¨ rbags 
 hpnltr←htr,hbags,⊂'cumpnl'
@@ -238,89 +193,45 @@ pntrs hpnltr csvr 'pnl-transactions.csv'
 ⍝ x←{(⊃⍺)(≢⍵)}⌸ d[;7]⋄x[(⍒x[;2]);] ⍝ Number of transactions per base currency
 ⍝ {⍺ (≢⍵)}⌸⊢d[;8] ⍝ Number of trades per quote
 
-⍝ ----------------------------------------------------------------------------------
-⍝ ----------------------------------------------------------------------------------
-⍝ --- Bed & Breakfast rule
-⍝ ----------------------------------------------------------------------------------
-⍝ ----------------------------------------------------------------------------------
-
+⍝ -------------------------------------------------------------
+⍝ --- Bed and Breakfast matching
+⍝ -------------------------------------------------------------
+⍝ 
 ⍝ --- Paired sells for all assets
+]display (⊂24,28,29)⌷ dnds←{⌊12 1⎕DT ⍵[;1]}¨ dtr ⍝ Day numbers since 1899
+]display  qtr,⍴¨ ixsb←↑{{⊂¯2+1↓⍵}⌸¯1,1,7⌷[2]⍵}¨ ⊢ dtr
+ixtrs ← ixsb[;1]
+ixtrb ← ixsb[;2]      
+]display  ⍴¨ trs← dtr {⍺[⍵;]}¨ ixsb[;1]
+]display  ⍴¨ trb← dtr {⍺[⍵;]}¨ ixsb[;2]
+]display ⍴¨ dbb←dnds {⍺[⍵]}¨ ixtrb
+]display ⍴¨ dss←dnds {⍺[⍵]}¨ ixtrs
+⍝ --- indexes of buys within 30 days of sells
+]display 4↑¨¨ 5↓ ixmsb← dbb {db←⍺⋄{⍸ (db≥⍵)∧db≤⍵+30}¨⍵}¨ dss
+ixtsb← ixtrb {ixb←⍺⋄{ixb[⍵]}¨ ⍵}¨ ixmsb
+szsb←dtr {tr←⍺⋄{⍵,tr[⍵;,8]}¨⍵}¨ ixtsb
+szs←ixtrs {⍺,⍵[⍺;,8]}¨ dtr
+
+⍝ --------------------------------------------------------------------
+⍝ ------- THIS WORKS
+⍝ -----------------------
+⍝ DONT DELETE THIS, TOOK ME 2 DAYS
 asbs←{tr←⍵⋄d←⌊12 1⎕DT tr[;1]⋄(ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋⍵[;1];2]}⊢{⍺ ⍵}⌸tr[;7]⋄(ds db)←{⍵[⍋⍵]}¨{d[⍵]}¨ (ixs ixb)⋄imsb← {⍸ (db≥⍵)∧db≤⍵+30}¨ds⋄itsb←{ixb[⍵]}¨ imsb ⋄ szsb←{⍵,d[⍵],tr[⍵;,8]}¨ itsb⋄szs←ixs,d[ixs],tr[ixs;,8] ⋄asb←  (↓szs) (,⍥⊂)¨ szsb}¨ dtr
+⍝ -----------------------
 
-⍝ 10↑x← {⍵[;1],¯4↑[2]⍵} dtr[1]
-⍝ ]display 10↑ 30↓ (3↑¨12 ¯1⎕DT 1↑[2] x),(⌊12 1⎕DT 1↑[2] x),x
-⍝ (⌊12 1∘⎕DT) ,/ ⊢ 10↑ 40↓ x[;,1]
-⍝ ]display x←10×⍳10⋄↑{⍵,⊂⍸ (x≥⍵)∧x≤⍵+30}¨x
+⍝ --- Matched with (sellIx, buyIx, spentSz)
+]display ≢¨ ¯1∘↓¨ mtsb← ⊃∘{{((id d ssz) bt)←⍺⋄fsp←(⍵[;2]∊bt[;1])⌿⍵⋄asp←fsp[;2] {⍺,+/⍵}⌸fsp[;3]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄spent←{(0<⍵[;3])⌿⍵} id, rsp[;,1], rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 3⍴0), ⍵}¨ asbs
 
-⍝ ]display {x←⍵⋄{⍵, ⊂⍸ (x≥⍵)∧x≤⍵+30}¨⍵} ⊢ ⌊12 1⎕DT 10↑ ,1↑[2] ⊃dtr[1]
-⍝ -
-⍝ ]display tr←20↑ 30↓⊃dtr[1]
-⍝ ]display d←⌊12 1⎕DT tr[;1] 
-⍝ ]display  ix30←{⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
-⍝ ]display  ⍴¨{⍵[;7]}¨{(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
-⍝ ]display   ¯4↑[2]¨ {(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
-⍝ ]display ≢¨{⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
-⍝ ]display ¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
-
-⍝ --- collect a list of next 30 days buys for every sell
-⍝ lbuys←¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1 ⍝ buys in nextt 30 days for every sell  
-
-⍝ ]display (str btr)←{⍵[⍋⍵[;1];2]} tr[;7]{⍺ ⍵}⌸tr
-⍝ --------- 
-⍝ d←⌊12 1⎕DT tr[;1] ⍝ - days since 1899
-⍝ (ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋⍵[;1];2]}⊢{⍺ ⍵}⌸tr[;7] ⍝ - Sell/Buy indexes in tr in asc order
-⍝ (ds db)←{⍵[⍋⍵]}¨{d[⍵]}¨ (ixs ixb) ⍝ - Sell/Buy days
-⍝ imsb← {⍸ (db≥⍵)∧db≤⍵+30}¨ds ⍝ indexes in db of buys within 30 days of sells in ds
-⍝ ⍝ imbs← {⍸ (ds≥⍵-30)∧db≤⍵}¨db ⍝ indexes in ds of sells in last 30 days of buys in db
-⍝ ⍝ - indexes in tr of matching buys for every sell
-⍝ itsb←{ixb[⍵]}¨ imsb
-⍝ ⍝ {tr[⍵;7]}¨ itsb ⍝ check all selected transactions are BUYS
-⍝ ]display szsb←{⍵,d[⍵],tr[⍵;,8]}¨ itsb ⍝ select ixtr, d, quantities from buys
-⍝ ⍝ ]display 1↑ asb←  (↓szs) (,⍥⊂)¨ szsb ⍝ array putting sells with their lists of buys
-⍝ ]display szs←ixs,d[ixs],tr[ixs;,8] ⍝ sell ixtr, day, size
-⍝ ]display 2↑  asb←  (↓szs) (,⍥⊂)¨ szsb ⍝ array putting sells with their lists of buys
-⍝ ((idxs d ssz) bt)←⊃asb[2] ⋄ cbsz←+\bt[;2] ⋄  bt, bt[;2]-bt[;2]⌊0⌈cbsz+ssz
-
-⍝ asbs←{tr←⍵}
-
-⍝ asbIT
-⍝ --- Calculates spent for a single pair
-⍝ calc_spent←{((idxs d ssz) bt)←⍵ ⋄ cbsz←+\bt[;2] ⋄ spent←bt, bt[;2]-bt[;2]⌊0⌈cbsz+ssz ⋄ spent←(0< ( , ¯1∘(↑[2]))spent)⌿spent⋄spent}
-⍝ calc_spent←{(id ssz) bt)←⍺⋄cbsz←+\⍵[;2] ⋄ spent←⍵, ⍵[;2]-⍵[;2]⌊0⌈cbsz+ssz ⋄ spent←(0< ( , ¯1∘(↑[2]))spent)⌿spent⋄spent}
-⍝ ((idxs d ssz) bt)←⊃asb[9] ⋄ cbsz←+\bt[;2] ⋄ spent←bt, bt[;2]-bt[;2]⌊0⌈cbsz+ssz ⋄ spent←(0< ( , ¯1∘(↑[2]))spent)⌿spent
-⍝ ( 0∘<¯1∘(,↑[2])spent ) ⌿spent
-
-⍝ --- -----------
-⍝ (( ⍳5),0,0,10×5 1⍴⍳5) (( 2+⍳5),0,0,10×5 1⍴⍳5) 
-⍝ ({⍵[⍋⍵;]}{⍵⍪⍵}{⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) {⍺ ⍵} ({3+⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) 
-⍝ --- aggregates spent by qty index 4
-⍝ agg_sz←{⍵[;1] {⍺,+/⍵[;4]}⌸⍵} ⍝ ⊢ ({⍵[⍋⍵;]}{⍵⍪⍵}{⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) 
-
-⍝ psp←({⍵[⍋⍵;]}{⍵⍪⍵}{⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) 
-⍝ sbs←({3+⍵,(10×⍵),0,200+25×⍵}5 1⍴⍳25) 
-⍝ asp←agg_qty_by_ix psp
-⍝ (psp⍪0)[psp[;1] ⍳ sbs[;1];] 
-⍝ ⍝ -- subtracts aggregated spent from buy list 
-⍝ (⊂psp) (⊂asp) ((sbs[;,4]-(asp⍪0)[;,2][asp[;1] ⍳ sbs[;1];])) sbs 
-⍝ --- Filters spent by ids in buys
-⍝ fltix← { (⍺[;1] ∊ ⍵[;1]) ⌿ ⍺ } 
-⍝ --- Func to reduce buys by previously spent
-⍝ rdcsp←{asp←agg_sz ⍺ ⋄ ⍵[;1 2 3], ⍵[;,4]-(asp⍪0)[;,2][asp[;1] ⍳ ⍵[;1];]}
-⍝ (trs trb)←{tr[⍵;]}¨ ixs ixb ⍝ - grouped sell/buy transactions
-⍝ --- Performs the B&B rule matching
-
-]display 10↑¨ 3↑ matched←{((id d ssz) bt)←⍺⋄⎕←'====Sell:',⍺⋄⎕←'---All psp',⊂⍵⋄⎕←'---Filtered psp:',⊂fsp←(⍵[;1]∊bt[;1])⌿⍵⋄⎕←'---Aggregated psp', ⊂asp←fsp[;1] {⍺,+/⍵}⌸fsp[;4]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄⎕←'---Now spent', ⊂spent←{(0<⍵[;4])⌿⍵}rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 4⍴0 0 0 0), asb
-
-⍝ --- Matching function
-matchIT←{{((id d ssz) bt)←⍺⋄⎕←'====Sell:',⍺⋄⎕←'---All psp',⊂⍵⋄⎕←'---Filtered psp:',⊂fsp←(⍵[;1]∊bt[;1])⌿⍵⋄⎕←'---Aggregated psp', ⊂asp←fsp[;1] {⍺,+/⍵}⌸fsp[;4]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄⎕←'---Now spent', ⊂spent←{(0<⍵[;4])⌿⍵}rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 4⍴0 0 0 0), ⍵}
-
-⍝ No debug
-spents← {{((id d ssz) bt)←⍺⋄fsp←(⍵[;1]∊bt[;1])⌿⍵⋄asp←fsp[;1] {⍺,+/⍵}⌸fsp[;4]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄spent←{(0<⍵[;4])⌿⍵} rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 4⍴0 0 0 0), ⍵}¨ asbs
+⍝ --- Aggregate Sell and Buy matches
+]display  5↑¨ 3↑  magg←(mtsb) ∘.{⍺[;,⍵] {⍺, +⌿⍵}⌸¯1↑[2]⍺} (1 2) 
 
 
-spents←{⎕←'Processing... '⋄matchIT ⍵}¨ asbs 
-⍝ --- Matched with (sellIx, buyIx, buyId, buySz, sellSz)
-spents← {{((id d ssz) bt)←⍺⋄fsp←(⍵[;2]∊bt[;1])⌿⍵⋄asp←fsp[;2] {⍺,+/⍵}⌸fsp[;5]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄spent←{(0<⍵[;4])⌿⍵} id, rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 5⍴0 0 0 0), ⍵}¨ asbs 
+⍝ --- Aggregate sell and buy matches
+⍝ ]display (agmaS agmaB) ← (mtsb[4])  {⍺[;,⍵] {⍺, +⌿⍵}⌸¯1↑[2]⍺}¨ ⊢1 2
+⍝ 7⌷ agmaS←{⍵[;1] {⍺,+/⍵}⌸⍵[;3] }¨ mtsb
+⍝ 7⌷ agmaB←{⍵[;2] {⍺,+/⍵}⌸⍵[;3] }¨ mtsb
+
+
 
 ⍝ - calculate unspent
 ⍝ ]display 35 {c←+\⍵⋄⍵⍪c,[0.5]⍵⌊0⌈c-⍺} ⍳10
