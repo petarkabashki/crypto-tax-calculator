@@ -238,42 +238,111 @@ pntrs hpnltr csvr 'pnl-transactions.csv'
 ⍝ x←{(⊃⍺)(≢⍵)}⌸ d[;7]⋄x[(⍒x[;2]);] ⍝ Number of transactions per base currency
 ⍝ {⍺ (≢⍵)}⌸⊢d[;8] ⍝ Number of trades per quote
 
-⍝ ------------------------------------------
+⍝ ----------------------------------------------------------------------------------
+⍝ ----------------------------------------------------------------------------------
 ⍝ --- Bed & Breakfast rule
+⍝ ----------------------------------------------------------------------------------
+⍝ ----------------------------------------------------------------------------------
 
-10↑x← {⍵[;1],¯4↑[2]⍵} ⊃dtr[1]
-]display 10↑ 30↓ (3↑¨12 ¯1⎕DT 1↑[2] x),(⌊12 1⎕DT 1↑[2] x),x
-(⌊12 1∘⎕DT) ,/ ⊢ 10↑ 40↓ x[;,1]
-]display x←10×⍳10⋄↑{⍵,⊂⍸ (x≥⍵)∧x≤⍵+30}¨x
+⍝ --- Paired sells for all assets
+asbs←{tr←⍵⋄d←⌊12 1⎕DT tr[;1]⋄(ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋⍵[;1];2]}⊢{⍺ ⍵}⌸tr[;7]⋄(ds db)←{⍵[⍋⍵]}¨{d[⍵]}¨ (ixs ixb)⋄imsb← {⍸ (db≥⍵)∧db≤⍵+30}¨ds⋄itsb←{ixb[⍵]}¨ imsb ⋄ szsb←{⍵,d[⍵],tr[⍵;,8]}¨ itsb⋄szs←ixs,d[ixs],tr[ixs;,8] ⋄asb←  (↓szs) (,⍥⊂)¨ szsb}¨ dtr
 
-]display {x←⍵⋄{⍵, ⊂⍸ (x≥⍵)∧x≤⍵+30}¨⍵} ⊢ ⌊12 1⎕DT 10↑ ,1↑[2] ⊃dtr[1]
+⍝ 10↑x← {⍵[;1],¯4↑[2]⍵} dtr[1]
+⍝ ]display 10↑ 30↓ (3↑¨12 ¯1⎕DT 1↑[2] x),(⌊12 1⎕DT 1↑[2] x),x
+⍝ (⌊12 1∘⎕DT) ,/ ⊢ 10↑ 40↓ x[;,1]
+⍝ ]display x←10×⍳10⋄↑{⍵,⊂⍸ (x≥⍵)∧x≤⍵+30}¨x
+
+⍝ ]display {x←⍵⋄{⍵, ⊂⍸ (x≥⍵)∧x≤⍵+30}¨⍵} ⊢ ⌊12 1⎕DT 10↑ ,1↑[2] ⊃dtr[1]
 ⍝ -
-]display tr←20↑ 30↓⊃dtr[1]
-]display d←⌊12 1⎕DT tr[;1] 
-]display  ix30←{⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
-]display  ⍴¨{⍵[;7]}¨{(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
-]display   ¯4↑[2]¨ {(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
-]display ≢¨{⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
-]display ¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
+⍝ ]display tr←20↑ 30↓⊃dtr[1]
+⍝ ]display d←⌊12 1⎕DT tr[;1] 
+⍝ ]display  ix30←{⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
+⍝ ]display  ⍴¨{⍵[;7]}¨{(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
+⍝ ]display   ¯4↑[2]¨ {(tr[⊃⍵;7]=1)/[1]tr[⊃⍵;]}¨ {⊂⍸ (d≥⍵)∧d≤⍵+30}¨d  
+⍝ ]display ≢¨{⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
+⍝ ]display ¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1  
 
 ⍝ --- collect a list of next 30 days buys for every sell
-lbuys←¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1 ⍝ buys in nextt 30 days for every sell  
+⍝ lbuys←¯4↑[2]¨ {(tr[⍵;7]=1)/[1]tr[⍵;]}¨ {⍸(d≥⍵)∧d≤⍵+30}¨ d×tr[;7]=¯1 ⍝ buys in nextt 30 days for every sell  
+
+⍝ ]display (str btr)←{⍵[⍋⍵[;1];2]} tr[;7]{⍺ ⍵}⌸tr
+⍝ --------- 
+⍝ d←⌊12 1⎕DT tr[;1] ⍝ - days since 1899
+⍝ (ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋⍵[;1];2]}⊢{⍺ ⍵}⌸tr[;7] ⍝ - Sell/Buy indexes in tr in asc order
+⍝ (ds db)←{⍵[⍋⍵]}¨{d[⍵]}¨ (ixs ixb) ⍝ - Sell/Buy days
+⍝ imsb← {⍸ (db≥⍵)∧db≤⍵+30}¨ds ⍝ indexes in db of buys within 30 days of sells in ds
+⍝ ⍝ imbs← {⍸ (ds≥⍵-30)∧db≤⍵}¨db ⍝ indexes in ds of sells in last 30 days of buys in db
+⍝ ⍝ - indexes in tr of matching buys for every sell
+⍝ itsb←{ixb[⍵]}¨ imsb
+⍝ ⍝ {tr[⍵;7]}¨ itsb ⍝ check all selected transactions are BUYS
+⍝ ]display szsb←{⍵,d[⍵],tr[⍵;,8]}¨ itsb ⍝ select ixtr, d, quantities from buys
+⍝ ⍝ ]display 1↑ asb←  (↓szs) (,⍥⊂)¨ szsb ⍝ array putting sells with their lists of buys
+⍝ ]display szs←ixs,d[ixs],tr[ixs;,8] ⍝ sell ixtr, day, size
+⍝ ]display 2↑  asb←  (↓szs) (,⍥⊂)¨ szsb ⍝ array putting sells with their lists of buys
+⍝ ((idxs d ssz) bt)←⊃asb[2] ⋄ cbsz←+\bt[;2] ⋄  bt, bt[;2]-bt[;2]⌊0⌈cbsz+ssz
+
+⍝ asbs←{tr←⍵}
+
+⍝ asbIT
+⍝ --- Calculates spent for a single pair
+⍝ calc_spent←{((idxs d ssz) bt)←⍵ ⋄ cbsz←+\bt[;2] ⋄ spent←bt, bt[;2]-bt[;2]⌊0⌈cbsz+ssz ⋄ spent←(0< ( , ¯1∘(↑[2]))spent)⌿spent⋄spent}
+⍝ calc_spent←{(id ssz) bt)←⍺⋄cbsz←+\⍵[;2] ⋄ spent←⍵, ⍵[;2]-⍵[;2]⌊0⌈cbsz+ssz ⋄ spent←(0< ( , ¯1∘(↑[2]))spent)⌿spent⋄spent}
+⍝ ((idxs d ssz) bt)←⊃asb[9] ⋄ cbsz←+\bt[;2] ⋄ spent←bt, bt[;2]-bt[;2]⌊0⌈cbsz+ssz ⋄ spent←(0< ( , ¯1∘(↑[2]))spent)⌿spent
+⍝ ( 0∘<¯1∘(,↑[2])spent ) ⌿spent
+
+⍝ --- -----------
+⍝ (( ⍳5),0,0,10×5 1⍴⍳5) (( 2+⍳5),0,0,10×5 1⍴⍳5) 
+⍝ ({⍵[⍋⍵;]}{⍵⍪⍵}{⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) {⍺ ⍵} ({3+⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) 
+⍝ --- aggregates spent by qty index 4
+⍝ agg_sz←{⍵[;1] {⍺,+/⍵[;4]}⌸⍵} ⍝ ⊢ ({⍵[⍋⍵;]}{⍵⍪⍵}{⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) 
+
+⍝ psp←({⍵[⍋⍵;]}{⍵⍪⍵}{⍵,(10×⍵),0,15×⍵}5 1⍴⍳5) 
+⍝ sbs←({3+⍵,(10×⍵),0,200+25×⍵}5 1⍴⍳25) 
+⍝ asp←agg_qty_by_ix psp
+⍝ (psp⍪0)[psp[;1] ⍳ sbs[;1];] 
+⍝ ⍝ -- subtracts aggregated spent from buy list 
+⍝ (⊂psp) (⊂asp) ((sbs[;,4]-(asp⍪0)[;,2][asp[;1] ⍳ sbs[;1];])) sbs 
+⍝ --- Filters spent by ids in buys
+⍝ fltix← { (⍺[;1] ∊ ⍵[;1]) ⌿ ⍺ } 
+⍝ --- Func to reduce buys by previously spent
+⍝ rdcsp←{asp←agg_sz ⍺ ⋄ ⍵[;1 2 3], ⍵[;,4]-(asp⍪0)[;,2][asp[;1] ⍳ ⍵[;1];]}
+⍝ (trs trb)←{tr[⍵;]}¨ ixs ixb ⍝ - grouped sell/buy transactions
+⍝ --- Performs the B&B rule matching
+
+]display 10↑¨ 3↑ matched←{((id d ssz) bt)←⍺⋄⎕←'====Sell:',⍺⋄⎕←'---All psp',⊂⍵⋄⎕←'---Filtered psp:',⊂fsp←(⍵[;1]∊bt[;1])⌿⍵⋄⎕←'---Aggregated psp', ⊂asp←fsp[;1] {⍺,+/⍵}⌸fsp[;4]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄⎕←'---Now spent', ⊂spent←{(0<⍵[;4])⌿⍵}rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 4⍴0 0 0 0), asb
+
+⍝ --- Matching function
+matchIT←{{((id d ssz) bt)←⍺⋄⎕←'====Sell:',⍺⋄⎕←'---All psp',⊂⍵⋄⎕←'---Filtered psp:',⊂fsp←(⍵[;1]∊bt[;1])⌿⍵⋄⎕←'---Aggregated psp', ⊂asp←fsp[;1] {⍺,+/⍵}⌸fsp[;4]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄⎕←'---Now spent', ⊂spent←{(0<⍵[;4])⌿⍵}rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 4⍴0 0 0 0), ⍵}
+
+⍝ No debug
+spents← {{((id d ssz) bt)←⍺⋄fsp←(⍵[;1]∊bt[;1])⌿⍵⋄asp←fsp[;1] {⍺,+/⍵}⌸fsp[;4]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄spent←{(0<⍵[;4])⌿⍵} rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 4⍴0 0 0 0), ⍵}¨ asbs
+
+
+spents←{⎕←'Processing... '⋄matchIT ⍵}¨ asbs 
+⍝ --- Matched with (sellIx, buyIx, buyId, buySz, sellSz)
+spents← {{((id d ssz) bt)←⍺⋄fsp←(⍵[;2]∊bt[;1])⌿⍵⋄asp←fsp[;2] {⍺,+/⍵}⌸fsp[;5]⋄rsp←bt[;1 2],bt[;,3]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;3]⋄spent←{(0<⍵[;4])⌿⍵} id, rsp, rsp[;3]-rsp[;3]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 5⍴0 0 0 0), ⍵}¨ asbs 
+
+⍝ - calculate unspent
+⍝ ]display 35 {c←+\⍵⋄⍵⍪c,[0.5]⍵⌊0⌈c-⍺} ⍳10
+⍝  - calculate spent
+⍝ spend←{c←+\⍵⋄⍵-⍵⌊0⌈c-⍺}
+
 
 ⍝ -------------------------------------------
 
 
 ⍝ ---Generate additional transactions for quotes in BTC ETH GBP
-x←(d[;8] ∊ 'BTC' 'ETH' 'GBP') /[1] d⋄x[;7 9 6]←x[;8 11],('SELL' 'BUY')[1+x[;6] ∊⊂'SELL']⋄x[;10 11]←0⋄x[;8]← ⊂'USDT'
+⍝ x←(d[;8] ∊ 'BTC' 'ETH' 'GBP') /[1] d⋄x[;7 9 6]←x[;8 11],('SELL' 'BUY')[1+x[;6] ∊⊂'SELL']⋄x[;10 11]←0⋄x[;8]← ⊂'USDT'
 
-⍝ --Fill in BTC and ETH prices
-fd←fbtc⋄bx←(x[;7] ≡¨ ⊂'BTC')⋄tsx←bx/x[;1]⋄fix←fd[;1] ⍳ tsx⋄x[;10]←(fd[;2][fix])@(⍸bx)⊢x[;10]
-fd←feth⋄bx←(x[;7] ≡¨ ⊂'ETH')⋄tsx←bx/x[;1]⋄fix←fd[;1] ⍳ tsx⋄x[;10]←(fd[;2][fix])@(⍸bx)⊢x[;10]
-fd←fgbp⋄bx←(x[;7] ≡¨ ⊂'GBP')⋄tsx←bx/x[;1]⋄fix←fd[;1] ⍳ tsx⋄x[;10]←(fd[;2][fix])@(⍸bx)⊢x[;10]
-+/x[;10]=0 ⍝ check if any prices are empty
-x[;11]←×/[2]x[;9 10] ⍝ calculate total
-+/x[;11]=0 ⍝ check if any totals are empty
+⍝ ⍝ --Fill in BTC and ETH prices
+⍝ fd←fbtc⋄bx←(x[;7] ≡¨ ⊂'BTC')⋄tsx←bx/x[;1]⋄fix←fd[;1] ⍳ tsx⋄x[;10]←(fd[;2][fix])@(⍸bx)⊢x[;10]
+⍝ fd←feth⋄bx←(x[;7] ≡¨ ⊂'ETH')⋄tsx←bx/x[;1]⋄fix←fd[;1] ⍳ tsx⋄x[;10]←(fd[;2][fix])@(⍸bx)⊢x[;10]
+⍝ fd←fgbp⋄bx←(x[;7] ≡¨ ⊂'GBP')⋄tsx←bx/x[;1]⋄fix←fd[;1] ⍳ tsx⋄x[;10]←(fd[;2][fix])@(⍸bx)⊢x[;10]
+⍝ +/x[;10]=0 ⍝ check if any prices are empty
+⍝ x[;11]←×/[2]x[;9 10] ⍝ calculate total
+⍝ +/x[;11]=0 ⍝ check if any totals are empty
 
-dd←{⍵[⍋⍵[;1];]}d⍪x ⍝ append supplementary transactions
+⍝ dd←{⍵[⍋⍵[;1];]}d⍪x ⍝ append supplementary transactions
 ------------------------------------------
 ---  Main calculations
 ------------------------------------------
