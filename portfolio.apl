@@ -202,8 +202,8 @@ pntrs hpnltr csvr 'pnl-transactions.csv'
 ]display  qtr,⍴¨ ixsb←↑{{⊂¯2+1↓⍵}⌸¯1,1,7⌷[2]⍵}¨ ⊢ dtr
 ixtrs ← ixsb[;1]
 ixtrb ← ixsb[;2]      
-]display  ⍴¨ trs← dtr {⍺[⍵;]}¨ ixsb[;1]
-]display  ⍴¨ trb← dtr {⍺[⍵;]}¨ ixsb[;2]
+]display  ⍴¨ trs← dtr {⍺[⍵;]}¨ ixtrs
+]display  ⍴¨ trb← dtr {⍺[⍵;]}¨ ixtrb
 ]display ⍴¨ dbb←dnds {⍺[⍵]}¨ ixtrb
 ]display ⍴¨ dss←dnds {⍺[⍵]}¨ ixtrs
 ⍝ --- indexes of buys within 30 days of sells
@@ -211,9 +211,15 @@ ixtrb ← ixsb[;2]
 ixtsb← ixtrb {ixb←⍺⋄{ixb[⍵]}¨ ⍵}¨ ixmsb
 szsb←dtr {tr←⍺⋄{⍵,tr[⍵;,8]}¨⍵}¨ ixtsb
 szs←ixtrs {⍺,⍵[⍺;,8]}¨ dtr
+asbs← szs {(↓⍺) (,⍥⊂)¨ ⍵}¨ szsb
+
+]display 4⌷ mtsb← (⊖¯1∘↓)¨ ⊃∘{{((id ssz) bt)←⍺⋄fsp←(⍵[;2]∊bt[;1])⌿⍵⋄asp←fsp[;2] {⍺,+/⍵}⌸fsp[;3]⋄rsp←bt[;1],bt[;,2]-(asp⍪0)[;,2][asp[;1] ⍳ bt[;1];]⋄cbsz←+\rsp[;2]⋄spent←{(0<⍵[;3])⌿⍵} id, rsp[;,1], rsp[;2]-rsp[;2]⌊0⌈cbsz+ssz ⋄spent⍪⍵}/⌽(⊂1 3⍴0), ⍵}¨ asbs
+
+⍝ - check that all 0-idx records are last in list
+⍝ {(≢⍵)=⍸0=⍵[;1]}¨ mtsb
 
 ⍝ --------------------------------------------------------------------
-⍝ ------- THIS WORKS
+⍝ ------- THIS WORKS TOO
 ⍝ -----------------------
 ⍝ DONT DELETE THIS, TOOK ME 2 DAYS
 asbs←{tr←⍵⋄d←⌊12 1⎕DT tr[;1]⋄(ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋⍵[;1];2]}⊢{⍺ ⍵}⌸tr[;7]⋄(ds db)←{⍵[⍋⍵]}¨{d[⍵]}¨ (ixs ixb)⋄imsb← {⍸ (db≥⍵)∧db≤⍵+30}¨ds⋄itsb←{ixb[⍵]}¨ imsb ⋄ szsb←{⍵,d[⍵],tr[⍵;,8]}¨ itsb⋄szs←ixs,d[ixs],tr[ixs;,8] ⋄asb←  (↓szs) (,⍥⊂)¨ szsb}¨ dtr
@@ -225,6 +231,14 @@ asbs←{tr←⍵⋄d←⌊12 1⎕DT tr[;1]⋄(ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋
 ⍝ --- Aggregate Sell and Buy matches
 ]display  5↑¨ 3↑  magg←(mtsb) ∘.{⍺[;,⍵] {⍺, +⌿⍵}⌸¯1↑[2]⍺} (1 2) 
 
+⍝ --------------------------------------------------------------------
+⍝ --- PNL for B&B matches wit sell idx
+⍝ --------------------------------------------------------------------
+⍝ 
+]display  4⌷ mpnsl ← dtr {⍵[;,1],⍵[;3]×⍺[⍵[;1];9]-⍺[⍵[;2];9]}¨ mtsb                                            
+
+⍝ --- Cumulative pnl if you want
+]display 4⌷  {⍵, +\⍵[;2]}¨ mpnsl
 
 ⍝ --- Aggregate sell and buy matches
 ⍝ ]display (agmaS agmaB) ← (mtsb[4])  {⍺[;,⍵] {⍺, +⌿⍵}⌸¯1↑[2]⍺}¨ ⊢1 2
