@@ -194,7 +194,9 @@ pntrs hpnltr csvr 'pnl-transactions.csv'
 ⍝ {⍺ (≢⍵)}⌸⊢d[;8] ⍝ Number of trades per quote
 
 ⍝ -------------------------------------------------------------
+⍝ -------------------------------------------------------------
 ⍝ --- Bed and Breakfast matching
+⍝ -------------------------------------------------------------
 ⍝ -------------------------------------------------------------
 ⍝ 
 ⍝ --- Paired sells for all assets
@@ -247,25 +249,57 @@ asbs←{tr←⍵⋄d←⌊12 1⎕DT tr[;1]⋄(ixs ixb)←{⍵[⍋⍵]}¨{⍵[⍋
 ]display 10↑¨ 4⌷ {⍵[⍋⍵[;1];]}¨ rdszs←(⍪/) magg
 
 ⍝ --- Transactions after reducing them by the B&B match
-]display  10↑¨ 4⌷⊢ rdszs {rds←↑(⍺⍪(0 0))[⍺[;1]⍳⍳≢⍵;2]⋄ns←⍵[;8]-rds⋄nt←ns×⍵[;9]⋄(⍳≢⍵),ns,⍵[;,9],nt}¨ dtr
+]display  10↑¨ 4⌷⊢ rdtr← rdszs {rds←↑(⍺⍪(0 0))[⍺[;1]⍳⍳≢⍵;2]⋄ns←⍵[;8]-rds⋄nt←ns×⍵[;9]⋄(⍳≢⍵),ns,⍵[;,9],nt}¨ dtr
 
-]display 10↑¨ 4⌷⊢ {⍵[⍋⍵[;1 2];]}¨ mtsb
 
 ]display  10↑¨ 4⌷ {(⍳≢⍵),⍵}¨ {⍵[;2,6+⍳4]}¨ dtr
 
+⍝ --- aggregate pnls by sell transaction ix
+10↑¨ 4⌷ ampnls←{ ⍵[;1]{⍺, +/⍵}⌸⍵[;2] }¨ mpnls
+⍝ --- pnl/0 for every transaction
+4⌷ trampnls← ampnls {(⊂⍺[;1] ⍳(⍳≢⍵)) ⌷ (⍺[;2],0)}¨ rdtr
 
-⍝ --- Aggregate sell and buy matches
-⍝ ]display (agmaS agmaB) ← (mtsb[4])  {⍺[;,⍵] {⍺, +⌿⍵}⌸¯1↑[2]⍺}¨ ⊢1 2
-⍝ 7⌷ agmaS←{⍵[;1] {⍺,+/⍵}⌸⍵[;3] }¨ mtsb
-⍝ 7⌷ agmaB←{⍵[;2] {⍺,+/⍵}⌸⍵[;3] }¨ mtsb
+⍝ ---------------------------------------------------------------------
+⍝ --- Rolling bags
+10↑¨ 4⌷ rbags← {1↓⊖⊃{w←HorMat ⍵⋄p←{⍵[1]>0:⍵[2]⋄⍵[3]}⍺[1],⍺[2],w[1;2]⋄ns←⍺[1]+w[1;1]⋄nt←w[1;3]+⍺[1]×p⋄pnl←⍺{⍺[1]>0:0⋄⍺[1]×⍵[2]-⍺[2]}w[1;]⋄(ns,(nt{⍵=0:0⋄⍺÷⍵}ns),nt,pnl)⍪w} /↓⊖ ⊢0⍪ ⍵}¨ 0,⍨¨ {¯3↑[2]⍵}¨ rdtr
+
+⍝ {⍵,+⍀¯1↑[2]⍵}¨
+
+⍝ --- concatenated b&b/bag pnls
+10↑¨ 4⌷ trallpnls← rbags {⍵,¯1↑[,2]⍺}¨ trampnls
+
+⍝ --- PNLs with dates, sorted by time
+10↑ dtpnls←  {⍵[⍋⍵[;1];]} ⊃⍪/ dtr {⍺[;1 2],⍵}¨ +/¨ trallpnls 
+
+⍝ --- yearly PNL
+y←2022
++⌿ ¯1↑[2] ypnl← dtpnls[ ⍸ (dtpnls[;1] < ¯1 12⎕DT ⊂(y 04 06))∧dtpnls[;1] ≥ ¯1 12⎕DT ⊂((y-1) 04 06);] 
 
 
 
-⍝ - calculate unspent
-⍝ ]display 35 {c←+\⍵⋄⍵⍪c,[0.5]⍵⌊0⌈c-⍺} ⍳10
-⍝  - calculate spent
-⍝ spend←{c←+\⍵⋄⍵-⍵⌊0⌈c-⍺}
+⍝ ---------------------------------------------------------------------
+⍝ --- Calculate rolling bags 
+hbags ← 'bsize' 'bprice' 'btotal' 'pnl'
+⍝ rbags←RollingBag¨ {¯3↑[2]⍵}¨ dtr
+⍝ pnls← dtr{m←⍺[;6]=-1⋄m×(⍺[;7]-⍵[;2])×⍵[;1]}¨ rbags ⍝ Calculate PNLs
 
+⍝ ⎕←qtr,⊃⍪/(¯1↑¨rbags) ⍝ bags after all transactions 
+
+lbags←{⍵[⍋⍵[;1];]} qtr,{⍵[;1],(⍵[;3]÷⍵[;1]),⍵[;,3]}⊃⍪/(¯1↑¨rbags) ⍝ Latest bags with average price
+lbags ('asset' 'size' 'avgPrice' 'totalUSDT') (⎕CSV⍠'IfExists' 'Replace') 'latest-bags.csv' 
+
+
+⍝ Concatenate transactions, bags, pnl
+⍝ 10↑¨ 4⌷ trbnls←{⍵,+⍀¯1↑[2]⍵}¨ rdtr{⍺,⍵}¨ rbags 
+
+]display hpnltr←(⊂'ix'), htr,hbags,⊂'cumpnl'
+⍝ fxtr←{(⊃trbnls[qtr⍳(⊂⍵)]) hpnltr) (⎕CSV⍠'IfExists' 'Replace') ('reports/transactions/',⍵,'.csv')}
+
+
+⍝ --- Export BAGS and transactions per asset
+xqs ← 'GBP' 'USDC' 'USDT' 'BUSD' ⍝ Excluded from pnl
+pntrs←{⍵,+⍀¯1↑[2]⍵} {⍵[⍋⍵[;1 4];]} ⊃,[1]/ (~qtr ∊ xqs) / trbnls ⍝ all transacttions with bags and pnl
+pntrs hpnltr csvr 'pnl-transactions.csv'
 
 ⍝ -------------------------------------------
 
